@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Chat Room</title>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-size: cover;
+            #background-color: blue;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            #olor: #ffffff;
+        }
+
+        .navbar {
+            background-color: transparent;
+            padding: 10px 20px;
+        }
+
+        .navbar .nav-link, .navbar .navbar-brand {
+            #color: #ffffff !important;
+        }
+
+        .navbar .nav-link:hover {
+            #color: #000000 !important;
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 1000px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        h1 {
+            #color: #ffffff;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
+
+        .card {
+            background-color: rgba(0x77, 0x77, 0x77, 0.6);
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            #color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        .card-text {
+            #color: #ffffff;
+        }
+
+        .post-author {
+            font-style: italic;
+            color: #888888;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/}">Chat Room</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/}">Refresh</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/newPost}">New Post</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/logout}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <h1>Posts</h1>
+    <div class="row">
+        <div class="col-lg-6 col-md-6 col-sm-12" th:each="post : ${posts}">
+            <div class="card">
+                <div class="card-body">
+                    <p class="card-text" th:text="${post.text}"></p>
+                    <p class="post-author">Posted by: <span th:text="${post.user.username}"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script language="JavaScript">
+    // Create WebSocket connection
+    const socket = new WebSocket("ws://localhost:8080/chat");
+
+    socket.onopen = function(e) {
+        console.log("[open] Connection established");
+        //console.log("Sending to server");
+        //socket.send("My name is John");
+    };
+
+    socket.onmessage = function(event) {
+        console.log(`[message] Data received from server: ${event.data}`);
+        location.reload(); // hence this is not a dynamic web app
+    };
+
+    socket.onclose = function(event) {
+        if (event.wasClean) {
+            console.log(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+        } else {
+            console.log('[close] Connection died');
+        }
+    };
+
+    socket.onerror = function(error) {
+        console.log(`[error] ${error.message}`);
+    };
+
+    const terminationEvent = 'onpagehide' in self ? 'pagehide' : 'unload';
+    window.addEventListener(terminationEvent, (event) => {
+        if (event.persisted === false) {
+            // client is gone
+            socket.onclose = function () { };
+            socket.close();
+            console.log("socket closed");
+        }
+    });
+
+</script>
+
+</body>
+</html>
